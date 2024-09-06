@@ -156,27 +156,23 @@ coverage:
 
 # Don't use -race top combine results with with integration testing
 	@echo "test with coverage"
-	GO111MODULE=$(GO111MODULE_VALUE) go test $(GO_TEST_FLAGS) $(GO_LD_FLAGS) ./... -args -test.gocoverdir=$(OUTDIR)/coverage_unit
+	GO111MODULE=$(GO111MODULE_VALUE) go test $(GO_TEST_FLAGS) $(GO_LD_FLAGS) --cover ./... -args -test.gocoverdir=$(OUTDIR)/coverage_unit
 
 # Convert into readable data
-	go tool covdata textfmt -i coverage_unit -o coverage_unit/cover.out
-	go tool cover -html=coverage_unit/cover.out -o coverage_unit/cover.html
+	go tool covdata textfmt -i="./out/coverage_unit" -o="./out/coverage_unit/cover.out"
+	go tool cover -html="./out/coverage_unit/cover.out" -o="./out/coverage_unit/cover.html"
 
-	cd cmd
+	cd cmd && \
+	go tool covdata textfmt -i="../out/coverage_integration" -o="../out/coverage_integration/cover.out" && \
+	go tool cover -html="../out/coverage_integration/cover.out" -o="../out/coverage_integration/cover.html" && \
+	go tool covdata merge -i="../out/coverage_unit,../out/coverage_integration" -o "../out/coverage_total" && \
+	go tool covdata textfmt -i="../out/coverage_total" -o="../out/coverage_total/cover.out" && \
+	go tool cover -html="../out/coverage_total/cover.out" -o="../out/coverage_total/cover.html"
 
-	go tool covdata textfmt -i ../coverage_integration -o ../coverage_integration/cover.out
-	go tool cover -html=../coverage_integration/cover.out -o ../coverage_integration/cover.html
-
-	go tool covdata merge -i=../coverage_unit,../coverage_integration -o ../coverage_total
-	go tool covdata textfmt -i ../coverage_total -o ../coverage_total/cover.out
-	go tool cover -html=../coverage_total/cover.out -o=../coverage_total/cover.html
-
-	cd ../
-
-	cp coverage_unit/cover.html coverage_out/coverage_unit.html
-	cp coverage_integration/cover.html coverage_out/coverage_integration.html
-	cp coverage_total/cover.html coverage_out/coverage_total.html
-	go tool covdata percent -i=coverage_total > coverage_out/cover_percentages.txt
+	cp ./out/coverage_unit/cover.html ./out/coverage_out/coverage_unit.html
+	cp ./out/coverage_integration/cover.html ./out/coverage_out/coverage_integration.html
+	cp ./out/coverage_total/cover.html ./out/coverage_out/coverage_total.html
+	go tool covdata percent -i="./out/coverage_total" > ./out/coverage_out/cover_percentages.txt
 
 release:
 	@echo "$@"
